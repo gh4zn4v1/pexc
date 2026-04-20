@@ -1,17 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-    <script>
-  (function() {
-    const SECRET_KEY = "cp123"; 
-    const userAccessKey = localStorage.getItem('site_access_token');
+    <div id="lock-screen" style="display:none; text-align:center; margin-top:100px;">
+  <h2>Restricted Access</h2>
+  <button onclick="setupDevice()" style="padding:10px 20px; cursor:pointer;">Authorize This Device</button>
+</div>
 
-    if (userAccessKey !== SECRET_KEY) {
-      // This stops the page from loading further and shows a popup
-      window.stop(); 
-      alert("STOP: Open Console now to enter your key.");
-      
-      // The redirect only happens AFTER you click OK
+<script>
+  const SECRET_KEY = "cp123";
+
+  function setupDevice() {
+    let pass = prompt("Enter Secret Key:");
+    if (pass === SECRET_KEY) {
+      localStorage.setItem('site_access_token', SECRET_KEY);
+      location.reload(); // Refresh to show the site
+    } else {
+      alert("Wrong key!");
       window.location.href = "https://www.google.com";
+    }
+  }
+
+  (function() {
+    if (localStorage.getItem('site_access_token') !== SECRET_KEY) {
+      // Hide the main content and show the lock screen
+      document.body.innerHTML = document.getElementById('lock-screen').innerHTML;
+      document.body.style.display = 'block';
     }
   })();
 </script>
