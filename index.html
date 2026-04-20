@@ -2,17 +2,14 @@
 <html lang="en">
     <script>
   (function() {
-    const SECRET_KEY = "cp123"; // Change this to something unique
+    const SECRET_KEY = "cp123"; // Matches your screenshot
     const userAccessKey = localStorage.getItem('site_access_token');
 
     if (userAccessKey !== SECRET_KEY) {
-      // If the key is missing or wrong, hide the page content immediately
-      document.documentElement.style.display = 'none';
+      // This alert stops the redirect and lets you open the console
+      alert("Unauthorized device. Please enter the key in the console.");
       
-      // Redirect to a neutral page like Google
       window.location.href = "https://www.google.com";
-      
-      // Safety backup: stop the script execution
       throw new Error("Unauthorized Access");
     }
   })();
