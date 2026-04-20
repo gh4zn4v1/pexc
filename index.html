@@ -1,5 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+    <script>
+  (function() {
+    const SECRET_KEY = "cp123"; // Change this to something unique
+    const userAccessKey = localStorage.getItem('site_access_token');
+
+    if (userAccessKey !== SECRET_KEY) {
+      // If the key is missing or wrong, hide the page content immediately
+      document.documentElement.style.display = 'none';
+      
+      // Redirect to a neutral page like Google
+      window.location.href = "https://www.google.com";
+      
+      // Safety backup: stop the script execution
+      throw new Error("Unauthorized Access");
+    }
+  })();
+</script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
