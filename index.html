@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TPE Calculator - Age & Weight</title>
+    <title>TPE Clinical Calculator</title>
     <style>
         body { font-family: -apple-system, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -14,14 +14,17 @@
         .result-box { margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 8px; border-left: 5px solid #3498db; }
         .result-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 1.05em; }
         .highlight { font-weight: bold; color: #d35400; }
-        .label-blue { color: #2980b9; font-weight: bold; }
-        footer { text-align: center; font-size: 0.8em; margin-top: 20px; color: #7f8c8d; }
+        .status-badge { font-size: 0.8em; padding: 2px 8px; border-radius: 4px; color: white; margin-left: 10px; }
+        .hypo { background-color: #e74c3c; } /* Red for hypotension */
+        .norm { background-color: #27ae60; } /* Green for normal */
+        .hyper { background-color: #f39c12; } /* Orange for hypertension */
+        footer { text-align: center; font-size: 0.8em; margin-top: 20px; color: #7f8c8d; line-height: 1.5; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>TPE Calculator</h2>
+    <h2>TPE Protocol Calculator</h2>
     
     <div class="input-group">
         <label>Patient Gender</label>
@@ -33,12 +36,12 @@
 
     <div class="input-group">
         <label>Age (Years)</label>
-        <input type="number" id="age" placeholder="Enter age" oninput="calculate()">
+        <input type="number" id="age" placeholder="Age" oninput="calculate()">
     </div>
 
     <div class="input-group">
         <label>Weight (kg)</label>
-        <input type="number" id="weight" placeholder="e.g. 70" oninput="calculate()">
+        <input type="number" id="weight" placeholder="Weight" oninput="calculate()">
     </div>
 
     <div class="input-group">
@@ -47,28 +50,34 @@
     </div>
 
     <div class="input-group">
-        <label>20% Human Albumin to use (ml)</label>
-        <select id="albuminInput" onchange="calculate()">
-            <option value="200">200 ml</option>
-            <option value="250">250 ml</option>
+        <label>Patient BP Condition</label>
+        <select id="bpStatus" onchange="calculate()">
+            <option value="normal">Normal BP (Target 5%)</option>
+            <option value="hypo">Hypotension (Target 10%)</option>
+            <option value="hyper">Hypertension (Target 5%)</option>
         </select>
     </div>
 
+    <div class="input-group">
+        <label>20% Human Albumin Volume to use (ml)</label>
+        <input type="number" id="albInput" placeholder="e.g. 200 or 250" oninput="calculate()">
+    </div>
+
     <div class="result-box" id="results">
-        <div class="result-item">Total Plasma Volume (1.0): <span class="label-blue" id="pvDisplay">0</span> ml</div>
+        <div class="result-item">Target Plasma Volume (1.0): <span id="pvDisplay" style="font-weight:bold;">0</span> ml</div>
         <hr>
-        <div style="font-weight:bold; margin-bottom:10px; color:#c0392b;">Phase 1: Iso-oncotic 5% Albumin</div>
+        <div style="font-weight:bold; margin-bottom:10px;">Phase 1: <span id="targetConcDisplay">5%</span> Albumin Replacement</div>
         <div class="result-item">20% Albumin: <span id="albUsed">0</span> ml</div>
-        <div class="result-item">Normal Saline to add: <span id="nsAdd">0</span> ml</div>
-        <div class="result-item" style="font-weight:bold;">Total Phase 1: <span id="phase1Total">0</span> ml</div>
+        <div class="result-item">Normal Saline Add-on: <span id="nsAdd">0</span> ml</div>
+        <div class="result-item" style="font-weight:bold; border-top: 1px dashed #ccc; pt: 5px;">Total Phase 1 Volume: <span id="phase1Total">0</span> ml</div>
         <hr>
         <div style="font-weight:bold; margin-bottom:10px; color:#27ae60;">Phase 2: Remaining Volume</div>
-        <div class="result-item"><strong>Haemaccel Replacement:</strong> <span class="highlight" id="haemaccelVol">0</span> ml</div>
+        <div class="result-item"><strong>Haemaccel Volume:</strong> <span class="highlight" id="haemaccelVol">0</span> ml</div>
     </div>
 
     <footer>
-        *Method: Gilcher's Rule for TBV<br>
-        Protocol: 1.0 Plasma Volume Exchange
+        *Method: Gilcher's Rule | Protocol: 1.0 PV Exchange<br>
+        Hypotension uses 10% Albumin; Normal/Hyper use 5%.
     </footer>
 </div>
 
@@ -78,32 +87,40 @@ function calculate() {
     const age = parseFloat(document.getElementById('age').value);
     const weight = parseFloat(document.getElementById('weight').value);
     const hct = parseFloat(document.getElementById('hct').value) / 100;
-    const albVolume = parseFloat(document.getElementById('albuminInput').value);
+    const bpStatus = document.getElementById('bpStatus').value;
+    const alb20Volume = parseFloat(document.getElementById('albInput').value);
 
-    if (weight > 0 && age > 0 && hct > 0) {
-        // Estimating Total Blood Volume (TBV) using Gilcher's Rule constants
-        // Average adult: Male 70ml/kg, Female 65ml/kg
+    if (weight > 0 && age > 0 && hct > 0 && alb20Volume > 0) {
+        // 1. Calculate TBV (Gilcher's Rule)
         let mlPerKg = (gender === 'male') ? 70 : 65;
-        
-        // Adjustment for elderly (65+)
         if (age >= 65) { mlPerKg -= 5; }
-
         const tbv = weight * mlPerKg;
-        const pv = tbv * (1 - hct);
         
-        // Exchange Target (1.0 x PV)
-        const totalExchange = pv;
+        // 2. Calculate PV
+        const pv = tbv * (1 - hct);
+        const totalExchange = pv; // 1.0 Volume
 
-        // Phase 1: 5% Albumin Prep (1 part 20% Albumin + 3 parts NS = 4 parts total)
-        const phase1Total = albVolume * 4;
-        const nsNeeded = phase1Total - albVolume;
+        // 3. Determine Concentration and Phase 1 Total
+        let targetConc = 0.05; // Default 5%
+        if (bpStatus === 'hypo') {
+            targetConc = 0.10; // 10% for hypotension
+        }
 
-        // Phase 2: Haemaccel
+        /* Dilution Logic:
+           C1 * V1 = C2 * V2
+           0.20 * (alb20Volume) = (targetConc) * (phase1Total)
+           phase1Total = (0.20 * alb20Volume) / targetConc
+        */
+        const phase1Total = (0.20 * alb20Volume) / targetConc;
+        const nsNeeded = phase1Total - alb20Volume;
+
+        // 4. Phase 2 Remainder
         const haemaccel = totalExchange - phase1Total;
 
-        // UI Updates
+        // Update Display
         document.getElementById('pvDisplay').innerText = Math.round(pv);
-        document.getElementById('albUsed').innerText = albVolume;
+        document.getElementById('targetConcDisplay').innerText = (targetConc * 100) + "%";
+        document.getElementById('albUsed').innerText = alb20Volume;
         document.getElementById('nsAdd').innerText = Math.round(nsNeeded);
         document.getElementById('phase1Total').innerText = Math.round(phase1Total);
         document.getElementById('haemaccelVol').innerText = haemaccel > 0 ? Math.round(haemaccel) : 0;
