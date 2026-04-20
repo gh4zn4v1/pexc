@@ -2,15 +2,16 @@
 <html lang="en">
     <script>
   (function() {
-    const SECRET_KEY = "cp123"; // Matches your screenshot
+    const SECRET_KEY = "cp123"; 
     const userAccessKey = localStorage.getItem('site_access_token');
 
     if (userAccessKey !== SECRET_KEY) {
-      // This alert stops the redirect and lets you open the console
-      alert("Unauthorized device. Please enter the key in the console.");
+      // This stops the page from loading further and shows a popup
+      window.stop(); 
+      alert("STOP: Open Console now to enter your key.");
       
+      // The redirect only happens AFTER you click OK
       window.location.href = "https://www.google.com";
-      throw new Error("Unauthorized Access");
     }
   })();
 </script>
