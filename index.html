@@ -42,7 +42,7 @@
     <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TPE Clinical Calculator</title>
+    <title>Plasma Exchange Protocol</title>
     <style>
         body { font-family: -apple-system, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -63,7 +63,7 @@
 <body>
 
 <div class="container">
-    <h2>TPE Protocol Calculator</h2>
+    <h2>Plasma Exchange Protocol</h2>
     
     <div class="input-group">
         <label>Patient Gender</label>
@@ -89,28 +89,19 @@
     </div>
 
     <div class="input-group">
-        <label>Patient BP Condition</label>
-        <select id="bpStatus" onchange="calculate()">
-            <option value="normal">Normal BP </option>
-            <option value="hypo">Hypotension </option>
-            <option value="hyper">Hypertension </option>
-        </select>
-    </div>
-
-    <div class="input-group">
         <label>20% Human Albumin Volume to use (ml)</label>
         <input type="number" id="albInput" placeholder="e.g. 200 or 250" oninput="calculate()">
     </div>
 
     <div class="result-box" id="results">
-        <div class="result-item">Target Plasma Volume (1.0): <span id="pvDisplay" style="font-weight:bold;">0</span> ml</div>
+        <div class="result-item">Total Plasma Exchange Volume: <span id="pvDisplay" style="font-weight:bold;">0</span> ml</div>
         <hr>
-        <div style="font-weight:bold; margin-bottom:10px;">Phase 1: <span id="targetConcDisplay">5%</span> Albumin Replacement</div>
+        <div style="font-weight:bold; margin-bottom:10px;">Step 1: With<span id="targetConcDisplay">5%</span> Albumin Replacement</div>
         <div class="result-item">20% Albumin: <span id="albUsed">0</span> ml</div>
         <div class="result-item">Normal Saline Add-on: <span id="nsAdd">0</span> ml</div>
         <div class="result-item" style="font-weight:bold; border-top: 1px dashed #ccc; pt: 5px;">Total Phase 1 Volume: <span id="phase1Total">0</span> ml</div>
         <hr>
-        <div style="font-weight:bold; margin-bottom:10px; color:#27ae60;">Phase 2: Remaining Volume</div>
+        <div style="font-weight:bold; margin-bottom:10px; color:#000000;">Step 2: Remaining Replacement</div>
         <div class="result-item"><strong>Haemaccel Volume:</strong> <span class="highlight" id="haemaccelVol">0</span> ml</div>
     </div>
 
