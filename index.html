@@ -83,7 +83,12 @@ function calculate() {
         const tbv = weight * mlPerKg;
         
         // 2. Calculate PV
-        const pv = tbv * (1 - hct);
+        let pv = tbv * (1 - hct);
+        
+        // --- ADDED ROUNDING/CAP LOGIC HERE ---
+        if (pv > 3000) { pv = 3000; }
+        // -------------------------------------
+
         const totalExchange = pv; 
 
         // 3. Concentration Logic (Fixed to 5%)
