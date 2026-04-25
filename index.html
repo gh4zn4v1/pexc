@@ -14,6 +14,7 @@
         .result-box { margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 8px; border-left: 5px solid #3498db; }
         .result-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 1.05em; }
         .highlight { font-weight: bold; color: #d35400; }
+        .phase-header { font-weight: bold; margin: 15px 0 5px 0; color: #2c3e50; text-decoration: underline; }
         footer { text-align: center; font-size: 0.8em; margin-top: 20px; color: #7f8c8d; line-height: 1.5; }
     </style>
 </head>
@@ -53,18 +54,22 @@
     <div class="result-box" id="results">
         <div class="result-item">Total Plasma Exchange Volume: <span id="pvDisplay" style="font-weight:bold;">0</span> ml</div>
         <hr>
-        <div style="font-weight:bold; margin-bottom:10px;">Step 1: With 5% Albumin Replacement</div>
+        
+        <div class="phase-header">Phase 1: Initial Replacement</div>
+        <div class="result-item">Haemaccel (1/2 Vol): <span class="highlight" id="haemaccelPhase1">0</span> ml</div>
+        
+        <div class="phase-header">Phase 2: Albumin Replacement (5%)</div>
         <div class="result-item">20% Albumin: <span id="albUsed">0</span> ml</div>
         <div class="result-item">Normal Saline Add-on: <span id="nsAdd">0</span> ml</div>
-        <div class="result-item" style="font-weight:bold; border-top: 1px dashed #ccc; padding-top: 5px;">Total Phase 1 Volume: <span id="phase1Total">0</span> ml</div>
-        <hr>
-        <div style="font-weight:bold; margin-bottom:10px; color:#000000;">Step 2: Remaining Replacement</div>
-        <div class="result-item"><strong>Haemaccel Volume:</strong> <span class="highlight" id="haemaccelVol">0</span> ml</div>
+        <div class="result-item" style="font-weight:bold; border-top: 1px dashed #ccc; padding-top: 5px;">Phase 2 Total: <span id="phase2Total">0</span> ml</div>
+        
+        <div class="phase-header">Phase 3: Final Replacement</div>
+        <div class="result-item">Haemaccel (Remaining): <span class="highlight" id="haemaccelPhase3">0</span> ml</div>
     </div>
 
     <footer>
         *Method: Gilcher's Rule | Protocol: 1.0 PV Exchange<br>
-        Standard 5% Albumin Concentration Replacement.
+        Sequence: 1/2 Haemaccel → 5% Albumin → 1/2 Haemaccel.
     </footer>
 </div>
 
@@ -85,31 +90,32 @@ function calculate() {
         // 2. Calculate PV
         let pv = tbv * (1 - hct);
         
-        // --- ADDED ROUNDING/CAP LOGIC HERE ---
+        // --- ROUNDING/CAP LOGIC ---
         if (pv > 3000) { pv = 3000; }
-        // -------------------------------------
-
         const totalExchange = pv; 
 
-        // 3. Concentration Logic (Fixed to 5%)
+        // 3. Albumin Phase Logic (5% concentration)
         const targetConc = 0.05; 
+        const phase2Total = (0.20 * alb20Volume) / targetConc;
+        const nsNeeded = phase2Total - alb20Volume;
 
-        /* Dilution Logic:
-           phase1Total = (Source Concentration * Source Volume) / Target Concentration
-           phase1Total = (0.20 * alb20Volume) / 0.05
-        */
-        const phase1Total = (0.20 * alb20Volume) / targetConc;
-        const nsNeeded = phase1Total - alb20Volume;
-
-        // 4. Phase 2 Remainder
-        const haemaccel = totalExchange - phase1Total;
+        // 4. Haemaccel Logic (Split in 2)
+        const totalHaemaccel = totalExchange - phase2Total;
+        const haemaccelHalf = totalHaemaccel > 0 ? (totalHaemaccel / 2) : 0;
 
         // Update Display
         document.getElementById('pvDisplay').innerText = Math.round(pv);
+        
+        // Phase 1
+        document.getElementById('haemaccelPhase1').innerText = Math.round(haemaccelHalf);
+        
+        // Phase 2
         document.getElementById('albUsed').innerText = alb20Volume;
         document.getElementById('nsAdd').innerText = Math.round(nsNeeded);
-        document.getElementById('phase1Total').innerText = Math.round(phase1Total);
-        document.getElementById('haemaccelVol').innerText = haemaccel > 0 ? Math.round(haemaccel) : 0;
+        document.getElementById('phase2Total').innerText = Math.round(phase2Total);
+        
+        // Phase 3
+        document.getElementById('haemaccelPhase3').innerText = Math.round(haemaccelHalf);
     }
 }
 </script>
